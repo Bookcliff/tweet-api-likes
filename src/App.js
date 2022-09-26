@@ -7,10 +7,10 @@ import { useEffect, useState } from "react";
 const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 function useData(id) {
-  const { data, error } = useSWR(`api/getApi/${id}`, fetcher);
+  const { data, error } = useSWR(`api/getApi/?id=${id}`, fetcher);
 
   return {
-    data: data,
+    usersNames: data,
     isLoading: !error & !data,
     isError: error,
   };
@@ -19,20 +19,24 @@ function useData(id) {
 function App() {
   const [users, setUsers] = useState([]);
   // const [id, setId] = useState();
+  console.log(users);
 
   const id = "1354143047324299264";
 
-  const { data } = useData(id);
+  const { usersNames } = useData(id);
 
   useEffect(() => {
     const getLikes = async () => {
-      if (!id || !users) {
+      if (!id || !usersNames) {
         setUsers([]);
         return;
       }
+      const likeUsers = usersNames.data.data;
+      const userArray = likeUsers.map((user) => user.username);
+      setUsers(userArray);
     };
     getLikes();
-  });
+  }, [id, usersNames]);
 
   return (
     <div className="App">

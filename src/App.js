@@ -1,19 +1,39 @@
 import logo from "./logo.svg";
 import "./App.css";
-import { Client } from "twitter-api-sdk";
 
-const client = new Client(
-  "AAAAAAAAAAAAAAAAAAAAAPk7fgEAAAAAzlXf64cMtZc4Ms4wvi4Af6ggfEg%3DfyjOqDhTKZPwddaQLhsjTsQMPpurXNJJvSJi7WMeZYtwJVMgec"
-);
+import useSWR from "swr";
+import { useEffect, useState } from "react";
 
-async function main() {
-  const tweet = await client.tweets.findTweetById("20");
-  console.log(tweet.data.text);
+const fetcher = (...args) => fetch(...args).then((res) => res.json());
+
+function useData(id) {
+  const { data, error } = useSWR(`api/getApi/${id}`, fetcher);
+
+  return {
+    data: data,
+    isLoading: !error & !data,
+    isError: error,
+  };
 }
 
-main();
-
 function App() {
+  const [users, setUsers] = useState([]);
+  // const [id, setId] = useState();
+
+  const id = "1354143047324299264";
+
+  const { data } = useData(id);
+
+  useEffect(() => {
+    const getLikes = async () => {
+      if (!id || !users) {
+        setUsers([]);
+        return;
+      }
+    };
+    getLikes();
+  });
+
   return (
     <div className="App">
       <header className="App-header">

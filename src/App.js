@@ -4,6 +4,8 @@ import "./App.css";
 import useSWR from "swr";
 import { useEffect, useState } from "react";
 
+const people = require("./data");
+
 const fetcher = (...args) => fetch(...args).then((res) => res.json());
 
 function useData(id) {
@@ -19,11 +21,18 @@ function useData(id) {
 function App() {
   const [users, setUsers] = useState([]);
   // const [id, setId] = useState();
-  console.log(users);
 
   const id = "1354143047324299264";
 
   const { usersNames } = useData(id);
+
+  const importantPeople = people.map((person) => person.username);
+
+  const intersectionUsername = users.filter((element) =>
+    importantPeople.includes(element)
+  );
+
+  console.log(intersectionUsername);
 
   useEffect(() => {
     const getLikes = async () => {

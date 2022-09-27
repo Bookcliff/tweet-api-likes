@@ -9,10 +9,10 @@ const { Header, Footer, Content } = Layout;
 function App() {
   const [users, setUsers] = useState([]);
   const [pagedUsers, setPagedUsers] = useState([]);
-  // const [id, setId] = useState();
+  const [id, setId] = useState();
   const inputRef = useRef(null);
 
-  const id = "1564962773284446208";
+  // const id = "1564962773284446208";
 
   const createColumns = () => [
     {
@@ -67,7 +67,6 @@ function App() {
           fullData.forEach((e) => pagedDataArray.push(e));
         }
         pageToken = data?.meta.next_token;
-        console.log(pageToken);
         if (!pageToken) {
           morePagesAvailable = false;
         }
@@ -83,7 +82,6 @@ function App() {
   //Combine both twitter datasets
 
   const fullLikesArray = users.concat(pagesTwitterUsers);
-  console.log({ pagedUsers, fullLikesArray });
 
   //Pull out the usernames of the pre-defined people list
 
@@ -117,10 +115,10 @@ function App() {
           <div>
             <Input
               placeholder="Tweet ID"
-              value={""}
-              // onChange={(event) => {
-              //   setId(event.target.value);
-              // }}
+              value={id}
+              onChange={(id) => {
+                setId(id.target.value);
+              }}
               ref={inputRef}
             />
           </div>

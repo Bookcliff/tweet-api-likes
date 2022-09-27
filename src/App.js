@@ -108,7 +108,11 @@ function App() {
         >
           Enter a tweet id below to see the list of pre-identified users that
           liked it. The tweet id is the string of numbers within the tweet's URL
-          on twitter (e.g., https://twitter.com/GoGoPool_/status/TWEET_ID)
+          on twitter (e.g., https://twitter.com/GoGoPool_/status/TWEET_ID). The
+          Twitter API only allows 75 API requests per minute. Due to the
+          pagination of their API, if you get an error/the data won't load, it
+          is likely because you reached the rate limit. Wait 15 minutes and try
+          again.
         </PageHeader>
 
         <div style={{ background: "#fff", padding: 24 }}>

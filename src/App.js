@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 
-import { Table, Input, Layout, Row, PageHeader, Col } from "antd";
+import { Table, Input, Layout, Row, PageHeader, Col, Statistic } from "antd";
 
 const people = require("./data");
 
@@ -44,6 +44,11 @@ function App() {
 
   useEffect(() => {
     const getPagedData = async () => {
+      if (!id) {
+        setUsers([]);
+        return;
+      }
+
       let pagedDataArray = [];
       let morePagesAvailable = true;
 
@@ -83,10 +88,6 @@ function App() {
 
   const fullLikesArray = users.concat(pagesTwitterUsers);
 
-  //Pull out the usernames of the pre-defined people list
-
-  // const importantPeople = people.map((person) => person.username);
-
   //Create array of pre-defined people who liked the tweet
 
   const intersectionUsername = people.filter((element) =>
@@ -104,7 +105,7 @@ function App() {
       <Content style={{ padding: "0 24px", marginTop: 16 }}>
         <PageHeader
           style={{ backgroundColor: "#fff" }}
-          title="Pre-Identified Users who Liked a Tweet"
+          title="Notable Users who Liked a Tweet"
         >
           Enter a tweet id below to see the list of pre-identified users that
           liked it. The tweet id is the string of numbers within the tweet's URL
@@ -115,30 +116,41 @@ function App() {
           again.
         </PageHeader>
 
-        <div style={{ background: "#fff", padding: 24 }}>
-          <div>
-            <Input
-              placeholder="Tweet ID"
-              value={id}
-              onChange={(id) => {
-                setId(id.target.value);
-              }}
-              ref={inputRef}
-            />
-          </div>
-
-          {/* Added math.random() because the keys were not unique which was messing with the blockNumber sorting */}
-          {id && (
-            <Table
-              style={{ marginTop: 24 }}
-              pagination={false}
-              rowKey={(record) => record.logIndex}
-              columns={createColumns()}
-              dataSource={intersectionUsername}
-              scroll={{ x: 400 }}
-            />
-          )}
-        </div>
+        <Row style={{ background: "#fff", padding: 24 }}>
+          <Input
+            placeholder="Tweet ID"
+            value={id}
+            onChange={(id) => {
+              setId(id.target.value);
+            }}
+            ref={inputRef}
+          />
+          <Row span={24} style={{ padding: 24 }}>
+            <Col span={24}>
+              {id && (
+                <Statistic
+                  title="Number of Likes"
+                  value={intersectionUsername.length}
+                />
+              )}
+            </Col>
+          </Row>
+        </Row>
+        <Row>
+          <Col span={24}>
+            {/* Added math.random() because the keys were not unique which was messing with the blockNumber sorting */}
+            {id && (
+              <Table
+                style={{ marginTop: 24 }}
+                pagination={false}
+                rowKey={(record) => record.logIndex}
+                columns={createColumns()}
+                dataSource={intersectionUsername}
+                scroll={{ x: 400 }}
+              />
+            )}
+          </Col>
+        </Row>
       </Content>
       <Footer></Footer>
     </Layout>

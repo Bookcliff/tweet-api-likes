@@ -2,13 +2,15 @@ import { useEffect, useState, useRef } from "react";
 
 import { Table, Input, Layout, Row, PageHeader, Col, Statistic } from "antd";
 
-const people = require("./data");
+// const people = require("./data");
 
 const { Header, Footer, Content } = Layout;
 
 function App() {
+  const [people, setPeople] = useState();
   const [users, setUsers] = useState([]);
   const [pagedUsers, setPagedUsers] = useState([]);
+  // const [error, setError] = useState(false);
   const [id, setId] = useState();
   const inputRef = useRef(null);
 
@@ -80,6 +82,21 @@ function App() {
     getPagedData();
   }, [id]);
 
+  useEffect(() => {
+    const getPeople = async () => {
+      if (!id) {
+        setPeople([]);
+        return;
+      }
+
+      const peopleData = await fetch("api/getPeople");
+      const peopleList = await peopleData.json();
+      const peopleArray = peopleList.people;
+      setPeople(peopleArray);
+    };
+    getPeople();
+  }, [id]);
+
   //Get usernames from twitter data
 
   const pagesTwitterUsers = pagedUsers.map((user) => user.username);
@@ -90,7 +107,7 @@ function App() {
 
   //Create array of pre-defined people who liked the tweet
 
-  const intersectionUsername = people.filter((element) =>
+  const intersectionUsername = people?.filter((element) =>
     fullLikesArray.includes(element.username)
   );
 
@@ -113,7 +130,15 @@ function App() {
           Twitter API only allows 75 API requests per minute. Due to the
           pagination of their API, if you get an error/the data won't load, it
           is likely because you reached the rate limit. Wait 15 minutes and try
-          again.
+          again. Update{" "}
+          <a
+            href="https://docs.google.com/spreadsheets/d/1P9UiHQkm_NIOg5WieiDfOzsewNC89_vjz127maF7_R0/edit#gid=0"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            this spreadsheet
+          </a>{" "}
+          to add or remove notable persons.
         </PageHeader>
 
         <Row style={{ background: "#fff", padding: 24 }}>
@@ -130,7 +155,7 @@ function App() {
               {id && (
                 <Statistic
                   title="Number of Likes"
-                  value={intersectionUsername.length}
+                  value={intersectionUsername?.length}
                 />
               )}
             </Col>
@@ -138,7 +163,6 @@ function App() {
         </Row>
         <Row>
           <Col span={24}>
-            {/* Added math.random() because the keys were not unique which was messing with the blockNumber sorting */}
             {id && (
               <Table
                 style={{ marginTop: 24 }}

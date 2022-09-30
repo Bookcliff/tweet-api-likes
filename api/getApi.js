@@ -1,10 +1,11 @@
 const fetch = require("node-fetch");
 
 export default async function handler(request, response) {
-  const { id } = request.query;
+  const { id, paginationToken } = request.query;
 
   const result = await fetch(
-    `https://api.twitter.com/2/tweets/${id}/liking_users`,
+    `https://api.twitter.com/2/tweets/${id}/liking_users` +
+      (paginationToken ? `?pagination_token=${paginationToken}` : ""),
     {
       method: "GET",
       headers: {

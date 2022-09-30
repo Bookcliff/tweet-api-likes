@@ -4,7 +4,8 @@ export default async function handler(request, response) {
   const { id, paginationToken } = request.query;
 
   const result = await fetch(
-    `https://api.twitter.com/2/tweets/${id}/liking_users?pagination_token=${paginationToken}`,
+    `https://api.twitter.com/2/tweets/${id}/retweeted_by` +
+      (paginationToken ? `?pagination_token=${paginationToken}` : ""),
     {
       method: "GET",
       headers: {

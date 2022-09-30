@@ -10,9 +10,13 @@ function App() {
   const [people, setPeople] = useState();
   const [users, setUsers] = useState([]);
   const [pagedUsers, setPagedUsers] = useState([]);
+  const [retweetUsers, setRetweetUsers] = useState([]);
+  const [retweetUsersPaged, setRetweetUsersPaged] = useState([]);
   // const [error, setError] = useState(false);
   const [id, setId] = useState();
   const inputRef = useRef(null);
+
+  console.log({ retweetUsers, retweetUsersPaged });
 
   // const id = "1564962773284446208";
 
@@ -30,22 +34,31 @@ function App() {
     {
       title: "Twitter Address",
       key: "address",
-      render: (intersectionUsername) => {
+      render: (fullArray) => {
         return (
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href={intersectionUsername.address}
-          >
-            {intersectionUsername.address}
+          <a target="_blank" rel="noopener noreferrer" href={fullArray.address}>
+            {fullArray.address}
           </a>
         );
+      },
+    },
+    {
+      title: "Interaction",
+      key: "like",
+      render: (fullArray) => {
+        const interaction = [];
+        if (fullArray.like === true) {
+          interaction.push("like");
+        } else if (fullArray.retweet === true) {
+          interaction.push("retweet");
+        }
+        return interaction;
       },
     },
   ];
 
   useEffect(() => {
-    const getPagedData = async () => {
+    const getLikeData = async () => {
       if (!id) {
         setUsers([]);
         return;
@@ -64,7 +77,7 @@ function App() {
 
       while (morePagesAvailable) {
         const response = await fetch(
-          `api/getPagesApi/?id=${id}&paginationToken=${pageToken}`
+          `api/getApi/?id=${id}&paginationToken=${pageToken}`
         );
         const { data } = await response.json();
         const fullData = data.data;
@@ -79,7 +92,42 @@ function App() {
         }
       }
     };
-    getPagedData();
+    const getRetweetData = async () => {
+      if (!id) {
+        setRetweetUsers([]);
+        return;
+      }
+
+      let pagedDataArray = [];
+      let morePagesAvailable = true;
+
+      const originalData = await fetch(`api/getRetweets/?id=${id}`);
+      const dataList = await originalData.json();
+      let pageToken = dataList?.data?.meta.next_token;
+
+      const retweetUsers = dataList.data.data;
+      const userArray = retweetUsers?.map((user) => user.username);
+      setRetweetUsers(userArray);
+
+      while (morePagesAvailable) {
+        const response = await fetch(
+          `api/getRetweets/?id=${id}&paginationToken=${pageToken}`
+        );
+        const { data } = await response.json();
+        const fullData = data.data;
+        if (!fullData) {
+          setRetweetUsersPaged(pagedDataArray);
+        } else {
+          fullData.forEach((e) => pagedDataArray.push(e));
+        }
+        pageToken = data?.meta.next_token;
+        if (!pageToken) {
+          morePagesAvailable = false;
+        }
+      }
+    };
+    getLikeData();
+    getRetweetData();
   }, [id]);
 
   useEffect(() => {
@@ -101,15 +149,34 @@ function App() {
 
   const pagesTwitterUsers = pagedUsers.map((user) => user.username);
 
+  const pagesRetweetUsers = retweetUsersPaged.map((user) => user.username);
+
   //Combine both twitter datasets
 
   const fullLikesArray = users.concat(pagesTwitterUsers);
+  const fullRetweetArray = retweetUsers.concat(pagesRetweetUsers);
 
   //Create array of pre-defined people who liked the tweet
 
-  const intersectionUsername = people?.filter((element) =>
+  const likeIntersectionUsername = people?.filter((element) =>
     fullLikesArray.includes(element.username)
   );
+
+  const updatedLikesArray = likeIntersectionUsername?.map((user) => ({
+    ...user,
+    like: true,
+  }));
+
+  const retweetIntersctionUsername = people?.filter((element) =>
+    fullRetweetArray.includes(element.username)
+  );
+
+  const updatedRetweetArray = retweetIntersctionUsername?.map((user) => ({
+    ...user,
+    retweet: true,
+  }));
+
+  const fullArray = updatedLikesArray?.concat(...updatedRetweetArray);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -150,16 +217,23 @@ function App() {
             }}
             ref={inputRef}
           />
-          <Row span={24} style={{ padding: 24 }}>
-            <Col span={24}>
-              {id && (
-                <Statistic
-                  title="Number of Likes"
-                  value={intersectionUsername?.length}
-                />
-              )}
-            </Col>
-          </Row>
+          <Col align="center" justify="center">
+            {id && (
+              <Statistic
+                title="Total Likes"
+                value={likeIntersectionUsername?.length}
+              />
+            )}
+          </Col>
+          <Col span={1}></Col>
+          <Col align="center" justify="center">
+            {id && (
+              <Statistic
+                title="Total Retweets"
+                value={retweetIntersctionUsername?.length}
+              />
+            )}
+          </Col>
         </Row>
         <Row>
           <Col span={24}>
@@ -169,7 +243,7 @@ function App() {
                 pagination={false}
                 rowKey={(record) => record.logIndex}
                 columns={createColumns()}
-                dataSource={intersectionUsername}
+                dataSource={fullArray}
                 scroll={{ x: 400 }}
               />
             )}

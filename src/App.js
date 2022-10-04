@@ -33,10 +33,10 @@ function App() {
     {
       title: "Twitter Address",
       key: "address",
-      render: (fullArray) => {
+      render: (finalData) => {
         return (
-          <a target="_blank" rel="noopener noreferrer" href={fullArray.address}>
-            {fullArray.address}
+          <a target="_blank" rel="noopener noreferrer" href={finalData.address}>
+            {finalData.address}
           </a>
         );
       },
@@ -44,12 +44,14 @@ function App() {
     {
       title: "Interaction",
       key: "like",
-      render: (fullArray) => {
+      render: (finalData) => {
         const interaction = [];
-        if (fullArray.like === true) {
+        if (finalData.like === true && finalData.retweet === true) {
+          interaction.push("like, retweet");
+        } else if (finalData.like === true) {
           interaction.push("like");
-        } else if (fullArray.retweet === true) {
-          interaction.unshift("retweet");
+        } else if (finalData.retweet === true) {
+          interaction.push("retweet");
         }
         return interaction;
       },
@@ -185,7 +187,12 @@ function App() {
     retweet: true,
   }));
 
-  const fullArray = updatedLikesArray?.concat(updatedRetweetArray);
+  const map = new Map();
+  updatedLikesArray?.forEach((item) => map.set(item.username, item));
+  updatedRetweetArray?.forEach((item) =>
+    map.set(item.username, { ...map.get(item.username), ...item })
+  );
+  const finalData = Array.from(map.values());
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -254,7 +261,7 @@ function App() {
                 pagination={false}
                 rowKey={(record) => record.logIndex}
                 columns={createColumns()}
-                dataSource={fullArray}
+                dataSource={finalData}
                 scroll={{ x: 400 }}
               />
             )}

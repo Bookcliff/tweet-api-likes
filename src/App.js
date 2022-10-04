@@ -12,11 +12,10 @@ function App() {
   const [pagedUsers, setPagedUsers] = useState([]);
   const [retweetUsers, setRetweetUsers] = useState([]);
   const [retweetUsersPaged, setRetweetUsersPaged] = useState([]);
-  // const [error, setError] = useState(false);
+  const [likeError, setLikeError] = useState(false);
+  const [retweetError, setRetweetError] = useState(false);
   const [id, setId] = useState();
   const inputRef = useRef(null);
-
-  console.log({ retweetUsers, retweetUsersPaged });
 
   // const id = "1564962773284446208";
 
@@ -50,7 +49,7 @@ function App() {
         if (fullArray.like === true) {
           interaction.push("like");
         } else if (fullArray.retweet === true) {
-          interaction.push("retweet");
+          interaction.unshift("retweet");
         }
         return interaction;
       },
@@ -69,6 +68,10 @@ function App() {
 
       const originalData = await fetch(`api/getApi/?id=${id}`);
       const dataList = await originalData.json();
+      if (originalData.status === 429) {
+        setLikeError(true);
+      }
+
       let pageToken = dataList?.data?.meta.next_token;
 
       const likeUsers = dataList.data.data;
@@ -79,7 +82,9 @@ function App() {
         const response = await fetch(
           `api/getApi/?id=${id}&paginationToken=${pageToken}`
         );
+
         const { data } = await response.json();
+
         const fullData = data.data;
         if (!fullData) {
           setPagedUsers(pagedDataArray);
@@ -102,6 +107,9 @@ function App() {
       let morePagesAvailable = true;
 
       const originalData = await fetch(`api/getRetweets/?id=${id}`);
+      if (originalData.status === 429) {
+        setRetweetError(true);
+      }
       const dataList = await originalData.json();
       let pageToken = dataList?.data?.meta.next_token;
 
@@ -113,6 +121,7 @@ function App() {
         const response = await fetch(
           `api/getRetweets/?id=${id}&paginationToken=${pageToken}`
         );
+
         const { data } = await response.json();
         const fullData = data.data;
         if (!fullData) {
@@ -176,7 +185,7 @@ function App() {
     retweet: true,
   }));
 
-  const fullArray = updatedLikesArray?.concat(...updatedRetweetArray);
+  const fullArray = updatedLikesArray?.concat(updatedRetweetArray);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -221,7 +230,7 @@ function App() {
             {id && (
               <Statistic
                 title="Total Likes"
-                value={likeIntersectionUsername?.length}
+                value={likeError ? "Error" : likeIntersectionUsername?.length}
               />
             )}
           </Col>
@@ -230,7 +239,9 @@ function App() {
             {id && (
               <Statistic
                 title="Total Retweets"
-                value={retweetIntersctionUsername?.length}
+                value={
+                  retweetError ? "Error" : retweetIntersctionUsername?.length
+                }
               />
             )}
           </Col>
